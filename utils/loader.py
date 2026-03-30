@@ -3,8 +3,8 @@ import pandas as pd
 
 def load_battery_data(file) -> pd.DataFrame:
     """
-    Load battery CSV data and normalize column names for downstream analysis.
-    Expected original columns in your CSV:
+    Load battery CSV data and normalize column names.
+    Expected columns from your CSV:
         time_cali_s
         Ecell_V
         I_mA
@@ -26,7 +26,6 @@ def load_battery_data(file) -> pd.DataFrame:
     if missing:
         raise ValueError(f"Missing required columns: {missing}")
 
-    # Rename to simpler internal names
     df = df.rename(
         columns={
             "time_cali_s": "time_s",
@@ -37,15 +36,26 @@ def load_battery_data(file) -> pd.DataFrame:
         }
     )
 
-    # Ensure numeric
     numeric_cols = ["time_s", "voltage_v", "current_ma", "capacity_mah", "soc"]
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
     df = df.dropna(subset=numeric_cols).reset_index(drop=True)
 
-    # Add convenient converted columns
     df["time_min"] = df["time_s"] / 60.0
     df["current_a"] = df["current_ma"] / 1000.0
+
+    # Raw electrical power at the terminal
+    df["power_w"] = df["voltage_v"] * df["current_a"]
+    df["abs_power_w"] = df["power_w"].abs()
+
+    # Model-friendly discharge-positive current
+    # raw current is negative during discharge in your file
+    df["i_discharge_a"] = -df["current_a"]
+
+    dt = df["time_s"].diff().fillna(0.0)
+    if len(dt) > 1:
+        dt.iloc[0] = dt.iloc[1]
+    df["dt_s"] = dt
 
     return df
