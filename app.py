@@ -11,7 +11,7 @@ from utils.agent import answer_user_question
 from utils.report import build_analysis_package
 
 
-st.set_page_config(page_title="Battery AI Copilot - Phase C", layout="wide")
+st.set_page_config(page_title="Battery AI Copilot", layout="wide")
 
 st.title("Battery AI Copilot - Phase C")
 st.write(
