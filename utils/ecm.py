@@ -3,15 +3,6 @@ from scipy.optimize import least_squares
 
 
 def simulate_1rc_constant_ocv(time_s, current_a_raw, params):
-    """
-    params = [Uoc, R0, R1, C1]
-
-    Raw data convention:
-      current_a_raw < 0 during discharge
-
-    Model convention:
-      i > 0 during discharge
-    """
     Uoc, R0, R1, C1 = params
 
     i = -np.asarray(current_a_raw, dtype=float)
@@ -19,7 +10,6 @@ def simulate_1rc_constant_ocv(time_s, current_a_raw, params):
 
     n = len(t)
     i1 = np.zeros(n)
-
     tau1 = max(R1 * C1, 1e-12)
 
     for k in range(1, n):
@@ -32,9 +22,6 @@ def simulate_1rc_constant_ocv(time_s, current_a_raw, params):
 
 
 def simulate_2rc_constant_ocv(time_s, current_a_raw, params):
-    """
-    params = [Uoc, R0, R1, C1, R2, C2]
-    """
     Uoc, R0, R1, C1, R2, C2 = params
 
     i = -np.asarray(current_a_raw, dtype=float)
@@ -49,10 +36,8 @@ def simulate_2rc_constant_ocv(time_s, current_a_raw, params):
 
     for k in range(1, n):
         dt = t[k] - t[k - 1]
-
         di1 = (i[k - 1] - i1[k - 1]) / tau1
         di2 = (i[k - 1] - i2[k - 1]) / tau2
-
         i1[k] = i1[k - 1] + dt * di1
         i2[k] = i2[k - 1] + dt * di2
 
@@ -65,19 +50,15 @@ def fit_1rc_constant_ocv(df):
     current_a = df["current_a"].values
     voltage_v = df["voltage_v"].values
 
-    # initial guess from your figure
     p0 = [4.0, 0.02, 0.2, 10000.0]
     lb = [2.5, 1e-5, 1e-5, 1.0]
     ub = [5.0, 0.5, 2.0, 1e7]
 
     def residuals(p):
-        v_pred = simulate_1rc_constant_ocv(time_s, current_a, p)
-        return v_pred - voltage_v
+        return simulate_1rc_constant_ocv(time_s, current_a, p) - voltage_v
 
     result = least_squares(residuals, p0, bounds=(lb, ub))
     v_fit = simulate_1rc_constant_ocv(time_s, current_a, result.x)
-
-    rmse = float(np.sqrt(np.mean((v_fit - voltage_v) ** 2)))
 
     return {
         "params": {
@@ -88,7 +69,7 @@ def fit_1rc_constant_ocv(df):
             "tau1_s": float(result.x[2] * result.x[3]),
         },
         "voltage_fit": v_fit,
-        "rmse_v": rmse,
+        "rmse_v": float(np.sqrt(np.mean((v_fit - voltage_v) ** 2))),
         "success": bool(result.success),
         "message": result.message,
     }
@@ -99,19 +80,15 @@ def fit_2rc_constant_ocv(df):
     current_a = df["current_a"].values
     voltage_v = df["voltage_v"].values
 
-    # reasonable initial guess with fast and slow branches
     p0 = [4.0, 0.02, 0.02, 500.0, 0.10, 5000.0]
     lb = [2.5, 1e-5, 1e-5, 1.0, 1e-5, 1.0]
     ub = [5.0, 0.5, 2.0, 1e7, 2.0, 1e8]
 
     def residuals(p):
-        v_pred = simulate_2rc_constant_ocv(time_s, current_a, p)
-        return v_pred - voltage_v
+        return simulate_2rc_constant_ocv(time_s, current_a, p) - voltage_v
 
     result = least_squares(residuals, p0, bounds=(lb, ub))
     v_fit = simulate_2rc_constant_ocv(time_s, current_a, result.x)
-
-    rmse = float(np.sqrt(np.mean((v_fit - voltage_v) ** 2)))
 
     return {
         "params": {
@@ -125,7 +102,7 @@ def fit_2rc_constant_ocv(df):
             "tau2_s": float(result.x[4] * result.x[5]),
         },
         "voltage_fit": v_fit,
-        "rmse_v": rmse,
+        "rmse_v": float(np.sqrt(np.mean((v_fit - voltage_v) ** 2))),
         "success": bool(result.success),
         "message": result.message,
     }

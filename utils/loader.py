@@ -2,16 +2,6 @@ import pandas as pd
 
 
 def load_battery_data(file) -> pd.DataFrame:
-    """
-    Load battery CSV data and normalize column names.
-    Expected columns from your CSV:
-        time_cali_s
-        Ecell_V
-        I_mA
-        QDischarge_cali_mA_h
-        SOC
-    """
-
     df = pd.read_csv(file)
 
     required_columns = [
@@ -44,18 +34,8 @@ def load_battery_data(file) -> pd.DataFrame:
 
     df["time_min"] = df["time_s"] / 60.0
     df["current_a"] = df["current_ma"] / 1000.0
-
-    # Raw electrical power at the terminal
     df["power_w"] = df["voltage_v"] * df["current_a"]
     df["abs_power_w"] = df["power_w"].abs()
-
-    # Model-friendly discharge-positive current
-    # raw current is negative during discharge in your file
     df["i_discharge_a"] = -df["current_a"]
-
-    dt = df["time_s"].diff().fillna(0.0)
-    if len(dt) > 1:
-        dt.iloc[0] = dt.iloc[1]
-    df["dt_s"] = dt
 
     return df

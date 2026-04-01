@@ -1,0 +1,16 @@
+Battery Qualification Requirement Sheet
+
+1. Voltage Safety Requirement
+During discharge testing, the cell terminal voltage shall not fall below 3.00 V at any point in the measured profile.
+
+2. Power Characterization Requirement
+For qualification review, any operating period with terminal power magnitude above 5.0 W shall be flagged as high-power behavior and reviewed for expected algorithm response.
+
+3. Documentation Requirement
+Each qualification run shall include a short engineering summary covering voltage range, current behavior, power behavior, and any notable model-fitting observations.
+
+4. Model Review Requirement
+Equivalent circuit model fitting may be used for first-pass interpretation. If a simplified OCV assumption is used, the result shall be labeled as preliminary and subject to further validation with SOC-dependent OCV calibration.
+
+5. Data Review Requirement
+Requirement checks should combine measured battery metrics with relevant engineering context.
