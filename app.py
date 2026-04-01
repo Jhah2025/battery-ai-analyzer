@@ -13,7 +13,7 @@ from utils.report import build_analysis_package
 
 st.set_page_config(page_title="Battery AI Copilot", layout="wide")
 
-st.title("Battery AI Copilot - Phase C")
+st.title("Battery AI Copilot")
 st.write(
     "Upload battery test data and a requirement document, then ask engineering questions."
 )
